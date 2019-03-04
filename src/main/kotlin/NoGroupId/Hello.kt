@@ -3,7 +3,7 @@ package NoGroupId
 import kotlin.math.*
 
 fun main(args: Array<String>) {
-    val a = DecimalFraction.from(-3.67)
+    //val a = DecimalFraction.from(-3.67)
     /*println(DecimalFraction.from(20 + PI).integral.toString())
     println(DecimalFraction.from(20 + PI).fraction.toString())
     println(DecimalFraction.from(20 + PI).isNegative.toString())
@@ -14,8 +14,8 @@ fun main(args: Array<String>) {
     println(a.round(0).toString())
     println(a.round(1).toString())
     println(a.round(2).toString())*/
-    println((-a).toString())
-
+    //println((-a).toString())
+    println()
 }
 
 data class DecimalFraction(private var integral: ArrayList<Int>,
@@ -30,7 +30,7 @@ data class DecimalFraction(private var integral: ArrayList<Int>,
     }
 
     private fun truncList() {
-        integral = ArrayList(integral.filterIndexed { index, i ->  index < intNumbs})
+        integral = ArrayList(integral.filterIndexed { index, i ->  index > (integral.size - intNumbs - 1)  })
         fraction = ArrayList(fraction.filterIndexed { index, i ->  index < intFract})
     }
 
@@ -103,48 +103,107 @@ data class DecimalFraction(private var integral: ArrayList<Int>,
 
         fun from(inp: String): DecimalFraction {
 
-            if (!inp.matches(Regex("""[+-]?\d+(\.\d+)?""")))
-                throw IllegalArgumentException("Incorrect String format")
+            var varInp = inp
 
             val isNeg = inp.first() == '-'
-            var curPos = if ((inp.first() == '-') || (inp.first() == '+')) 1
-            else 0
 
-            val ansI: ArrayList<Int> = arrayListOf()
-            val ansR: ArrayList<Int> = arrayListOf()
+            if (varInp.matches(Regex("""^[+-]?[1-9]\.(0|\d*[1-9]+)E-?[1-9]+\d*$"""))) {
 
-            while (curPos != inp.length) {
-                if (inp[curPos] != '.') {
-                    ansI.add(inp[curPos].toString().toInt())
-                    curPos++
+                val stPos = if ((varInp.first() == '-') || (varInp.first() == '+')) 1
+                else 0
+
+                val ePos = varInp.indexOf('E')
+
+                var absI = varInp[stPos].toString()
+                var absR = varInp.substring(stPos + 2, ePos)
+
+                if (varInp[ePos + 1] == '-') {
+
+                    val ord = varInp.substring(ePos + 2).toInt()
+
+                    absR = "0".repeat(ord-1) + absI + absR
+
+                    absI = "0"
+                }
+                else {
+
+                    val ord = varInp.substring(ePos + 1).toInt()
+
+                    if (ord >= absR.length) {
+                        absI += absR
+                        absI += "0".repeat(ord - absR.length)
+                        absR = ""
+                    } else {
+                        absI += absR.substring(0, ord)
+                        absR = absR.substring(ord)
+                    }
+                }
+
+                varInp = if ((isNeg) && (absR.isEmpty())){
+                    "-$absI"
+                } else if ((isNeg) && (absR.isNotEmpty())){
+                    "-$absI.$absR"
+                } else if ((!isNeg) && (absR.isNotEmpty())) {
+                    "$absI.$absR"
                 } else
-                    break
+                    absI
+
+                //println(varInp)
+
             }
 
-            if(curPos == inp.length)
-                return DecimalFraction(ansI, arrayListOf(), isNeg)
+            if (varInp.matches(Regex("""^[+-]?(0|([1-9]\d*))(\.\d+)?$"""))) {
 
-            curPos++
+                var curPos = if ((varInp.first() == '-') || (varInp.first() == '+')) 1
+                else 0
 
-            while (curPos != inp.length) {
-                ansR.add(inp[curPos].toString().toInt())
+                val ansI: ArrayList<Int> = arrayListOf()
+                val ansR: ArrayList<Int> = arrayListOf()
+
+                if(Regex(""".+\.?0+$""").matches(varInp))
+                    varInp = varInp.replace(Regex("""\.?0+$"""),"")
+
+                while (curPos != varInp.length) {
+                    if (varInp[curPos] != '.') {
+                        ansI.add(varInp[curPos].toString().toInt())
+                        curPos++
+                    } else
+                        break
+                }
+
+                if (curPos == varInp.length)
+                    return DecimalFraction(ansI, arrayListOf(), isNeg)
+
                 curPos++
+
+                while (curPos != varInp.length) {
+                    ansR.add(varInp[curPos].toString().toInt())
+                    curPos++
+                }
+
+                return DecimalFraction(ansI, ansR, isNeg)
             }
 
-            return DecimalFraction(ansI, ansR, isNeg)
+            throw IllegalArgumentException("Incorrect String format")
         }
 
     }
 
 
-    fun setDigitsIntegral(inp: Int) {
+    fun setDigitsIntegral(inp: Int): DecimalFraction {
+        if (inp < 1)
+            throw IllegalArgumentException("Incorrect amount of digits given")
         intNumbs = inp
         truncList()
+        return this.copy()
     }
 
-    fun setDigitsFraction(inp: Int) {
+    fun setDigitsFraction(inp: Int): DecimalFraction {
+        if (inp < 0)
+            throw IllegalArgumentException("Incorrect amount of digits given")
         intFract = inp
         truncList()
+        return this.copy()
     }
 
     override fun toString(): String {
@@ -175,17 +234,111 @@ data class DecimalFraction(private var integral: ArrayList<Int>,
             ans
     }*/
 
-    fun toDouble(): Double = this.toString().toDouble()
+    fun toDouble(): Double {
+        //val mVal = from("17976931348623157" + "0".repeat(292))
+        val mVal = from(Double.MAX_VALUE)
+        if((this > mVal) || (-this < -mVal))
+            throw IllegalArgumentException("Overflow")
+        else
+            return this.toString().toDouble()
+    }
 
-    fun toFloat(): Float = this.toString().toFloat()
+    fun toFloat(): Float {
+        val mVal = from("34028235" + "0".repeat(7))
+        if((this > mVal) || (-this < -mVal))
+            throw IllegalArgumentException("Overflow")
+        else
+            return this.toString().toFloat()
+    }
 
-    fun toLong(): Long = this.toString().toLong()
+    fun toLong(): Long {
+        val mVal = from(Long.MAX_VALUE)
+        if((this > mVal) || (-this < -mVal))
+            throw IllegalArgumentException("Overflow")
+        else
+            return this.toString().toLong()
+    }
 
-    fun toInt(): Int = this.toString().toInt()
+    fun toInt(): Int {
+        val mVal = from(Int.MAX_VALUE)
+        if((this > mVal) || (-this < -mVal))
+            throw IllegalArgumentException("Overflow")
+        else
+            return this.toString().toInt()
+    }
 
     operator fun unaryMinus(): DecimalFraction {
+
         val a = this.copy()
         a.isNegative = !a.isNegative
         return a
+
     }
+
+    operator fun compareTo(other: DecimalFraction): Int {
+
+        if((other.isNegative) && (!this.isNegative))
+            return 1
+
+        if((!other.isNegative) && (this.isNegative))
+            return -1
+
+        if(other.integral.size < this.integral.size)
+            return if(!this.isNegative)
+                1
+            else
+                -1
+
+        if(other.integral.size > this.integral.size)
+            return if(!this.isNegative)
+                -1
+            else
+                1
+
+        for(i in (this.integral.size - 1) downTo 0) {
+            if(this.integral[i] > other.integral[i])
+                return if(!this.isNegative)
+                    1
+                else
+                    -1
+            if(this.integral[i] < other.integral[i])
+                return if(!this.isNegative)
+                    -1
+                else
+                    1
+        }
+
+        if(other.fraction.size < this.fraction.size)
+            return if(!this.isNegative)
+                1
+            else
+                -1
+
+        if(other.fraction.size > this.fraction.size)
+            return if(!this.isNegative)
+                -1
+            else
+                1
+
+        for(i in 0 until this.fraction.size) {
+            if(this.fraction[i] > other.fraction[i])
+                return if(!this.isNegative)
+                    1
+                else
+                    -1
+            if(this.fraction[i] < other.fraction[i])
+                return if(!this.isNegative)
+                    -1
+                else
+                    1
+        }
+
+        return 0
+    }
+
+    operator fun plus(other: DecimalFraction): DecimalFraction {
+        TODO()
+    }
+
+    operator fun minus(other: DecimalFraction): DecimalFraction = this + ( -other)
 }
