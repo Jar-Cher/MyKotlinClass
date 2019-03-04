@@ -6,6 +6,6 @@ import kotlin.test.*
 class HelloTest {
     @Test
     fun test1() {
-        assertEquals("-3", DecimalFraction.from("-3").toString())
+        assertEquals(-3.0, DecimalFraction.from("-3").toDouble())
     }
 }
