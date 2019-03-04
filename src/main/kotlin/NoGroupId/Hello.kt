@@ -3,17 +3,27 @@ package NoGroupId
 import kotlin.math.*
 
 fun main(args: Array<String>) {
-    println(DecimalFraction.from(20 + PI).integral.toString())
+    val a = DecimalFraction.from(-3.67)
+    /*println(DecimalFraction.from(20 + PI).integral.toString())
     println(DecimalFraction.from(20 + PI).fraction.toString())
     println(DecimalFraction.from(20 + PI).isNegative.toString())
     println(DecimalFraction.from(-20 + PI).integral.toString())
     println(DecimalFraction.from(-20 + PI).fraction.toString())
     println(DecimalFraction.from(-20 + PI).isNegative.toString())
+    println(a.round(3).toString())
+    println(a.round(0).toString())
+    println(a.round(1).toString())
+    println(a.round(2).toString())*/
+    println((-a).toString())
+
 }
 
-data class DecimalFraction(var integral: ArrayList<Int>,
-                      var fraction: ArrayList<Int>,
-                      var isNegative: Boolean) {
+data class DecimalFraction(private var integral: ArrayList<Int>,
+                      private var fraction: ArrayList<Int>,
+                      private var isNegative: Boolean) {
+
+    private var intNumbs: Int = 100500
+    private var intFract: Int = 100500
 
     init {
         truncList()
@@ -24,10 +34,26 @@ data class DecimalFraction(var integral: ArrayList<Int>,
         fraction = ArrayList(fraction.filterIndexed { index, i ->  index < intFract})
     }
 
-    companion object {
+    fun round(digitsAfterDel: Int): DecimalFraction {
 
-        private var intNumbs: Long = 100500
-        private var intFract: Long = 100500
+        val ans = this.copy()
+
+        if ((digitsAfterDel == 0) && (ans.fraction.size > 0)) {
+            if(ans.fraction[0] > 4)
+                ans.integral[ans.integral.size - 1]++
+            ans.fraction.clear()
+        }
+        else if (digitsAfterDel < ans.fraction.size) {
+            val lNum = ans.fraction[digitsAfterDel]
+            if(lNum > 4)
+                ans.fraction[digitsAfterDel - 1]++
+            ans.fraction = ArrayList(ans.fraction.filterIndexed { index, i ->  index < digitsAfterDel})
+        }
+
+        return ans
+    }
+
+    companion object {
 
         /*
         fun from(inp: Double): DecimalFraction {
@@ -111,12 +137,12 @@ data class DecimalFraction(var integral: ArrayList<Int>,
     }
 
 
-    fun setDigitsIntegral(inp: Long) {
+    fun setDigitsIntegral(inp: Int) {
         intNumbs = inp
         truncList()
     }
 
-    fun setDigitsFraction(inp: Long) {
+    fun setDigitsFraction(inp: Int) {
         intFract = inp
         truncList()
     }
@@ -156,4 +182,10 @@ data class DecimalFraction(var integral: ArrayList<Int>,
     fun toLong(): Long = this.toString().toLong()
 
     fun toInt(): Int = this.toString().toInt()
+
+    operator fun unaryMinus(): DecimalFraction {
+        val a = this.copy()
+        a.isNegative = !a.isNegative
+        return a
+    }
 }
