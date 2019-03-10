@@ -18,8 +18,8 @@ class HelloTest {
 
     @Test
     fun testInp() {
-        assertEquals(0.001123123123123, DecimalFraction.from(1.123123123123E-3).toDouble())
         assertEquals(-0.0000001123123123123, DecimalFraction.from(-1.123123123123E-7).toDouble())
+        assertEquals(0.001123123123123, DecimalFraction.from(1.123123123123E-3).toDouble())
         assertEquals(-0.0000001123123123123, DecimalFraction.from("-1.123123123123E-7").toDouble())
         assertEquals(DecimalFraction.from(9.9900), DecimalFraction.from("9.9900"))
         assertEquals(DecimalFraction.from(4.0),DecimalFraction.from(4))
@@ -37,6 +37,7 @@ class HelloTest {
 
     @Test
     fun testString() {
+        assertEquals("-5000", DecimalFraction.from(-5000).toString())
         assertEquals("-4.23", DecimalFraction.from(-4.23).toString())
         assertEquals("4.23", DecimalFraction.from(4.23).toString())
         assertEquals("-4", DecimalFraction.from(-4).toString())
@@ -79,5 +80,33 @@ class HelloTest {
         assertTrue(DecimalFraction.from(746) > DecimalFraction.from(745))
         assertTrue(DecimalFraction.from(0) > DecimalFraction.from(-9556.254))
         assertTrue(DecimalFraction.from(-0.15) > DecimalFraction.from(-0.16))
+        assertTrue(DecimalFraction.from(0) < DecimalFraction.from(0.33))
+        assertTrue(DecimalFraction.from(0) > DecimalFraction.from(-0.33))
+    }
+
+    @Test
+    fun testAbs() {
+        assertTrue(DecimalFraction.from(0).abs() < DecimalFraction.from(-0.33).abs())
+        assertEquals((DecimalFraction.from(4)), (DecimalFraction.from(-4)).abs())
+    }
+
+    @Test
+    fun testPlusAndMinus() {
+        assertEquals(DecimalFraction.from(5000.0) - DecimalFraction.from(-5000),
+            DecimalFraction.from("10000"))
+        assertEquals(DecimalFraction.from(0) - DecimalFraction.from(0.33),
+            DecimalFraction.from(-0.33))
+        assertEquals(DecimalFraction.from(1006.4) - DecimalFraction.from(250.4),
+            DecimalFraction.from(756))
+        assertEquals(DecimalFraction.from(560.24) + DecimalFraction.from(34670.9),
+            DecimalFraction.from(35231.14))
+        assertEquals(DecimalFraction.from(756) + DecimalFraction.from(250.4),
+            DecimalFraction.from(1006.4))
+        assertEquals(DecimalFraction.from(4) + DecimalFraction.from(4),
+            DecimalFraction.from(8))
+        assertEquals(DecimalFraction.from(4) + DecimalFraction.from(-4),
+            DecimalFraction.from(0))
+        assertEquals(DecimalFraction.from(35231.14) - DecimalFraction.from(34670.9),
+            DecimalFraction.from(560.24))
     }
 }
