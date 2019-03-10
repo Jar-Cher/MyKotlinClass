@@ -109,4 +109,28 @@ class HelloTest {
         assertEquals(DecimalFraction.from(35231.14) - DecimalFraction.from(34670.9),
             DecimalFraction.from(560.24))
     }
+
+    @Test
+    fun testTimes() {
+        assertEquals(DecimalFraction.from(-35291.14) * DecimalFraction.from(34670),
+            DecimalFraction.from("-1223543823.8"))
+        assertEquals(DecimalFraction.from(23) * DecimalFraction.from(45),
+            DecimalFraction.from(1035))
+        assertEquals(DecimalFraction.from(0) * DecimalFraction.from(0.33),
+            DecimalFraction.from(0))
+        assertEquals(DecimalFraction.from(5000.0) * DecimalFraction.from(5000),
+            DecimalFraction.from("25000000"))
+        assertEquals(DecimalFraction.from(-0.1) * DecimalFraction.from(0.33),
+            DecimalFraction.from(-0.033))
+        assertEquals(DecimalFraction.from(1006.4) * DecimalFraction.from(250.4),
+            DecimalFraction.from(252002.56))
+        assertEquals(DecimalFraction.from(-560.24) * DecimalFraction.from(-34670.9),
+            DecimalFraction.from(19424025.016))
+        assertEquals(DecimalFraction.from(756) * DecimalFraction.from(250.4),
+            DecimalFraction.from(189302.4))
+        assertEquals(DecimalFraction.from(4) * DecimalFraction.from(4),
+            DecimalFraction.from(16))
+        assertEquals(DecimalFraction.from(4) * DecimalFraction.from(-4),
+            DecimalFraction.from(-16))
+    }
 }

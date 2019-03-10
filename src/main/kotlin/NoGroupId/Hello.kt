@@ -33,11 +33,15 @@ data class DecimalFraction(private var integral: ArrayList<Int>,
 
     private fun truncList() {
 
-        integral = ArrayList(integral.filterIndexed { index, i ->  index > (integral.size - intNumbs - 1)  })
-        fraction = ArrayList(fraction.filterIndexed { index, i ->  index < intFract})
+        integral = ArrayList(integral.filterIndexed { index, _ ->  index > (integral.size - intNumbs - 1)  })
+        fraction = ArrayList(fraction.filterIndexed { index, _ ->  index < intFract})
 
         if (fraction.all { it == 0 })
             fraction.clear()
+
+        if (fraction.size > 0)
+            while (fraction.last() == 0)
+                fraction.removeAt(fraction.size - 1)
 
         if(integral.size > 1)
             while(integral[0] == 0)
@@ -461,19 +465,71 @@ data class DecimalFraction(private var integral: ArrayList<Int>,
 
     operator fun minus(other: DecimalFraction): DecimalFraction = this + ( -other)
 
-    /*operator  fun times(other: DecimalFraction): DecimalFraction {
+    operator  fun times(other: DecimalFraction): DecimalFraction {
 
-        val thisOneLined = this.integral + this.
-        val lesser: DecimalFraction
+        val thisOneLined = this.integral + this.fraction
+        val otherOneLined = other.integral + other.fraction
+        val digitsAfterDot = this.fraction.size + other.fraction.size
+        val provAns: ArrayList<ArrayList<Int>> = arrayListOf()
+        val extraZeros: ArrayList<Int> = arrayListOf()
 
-        if(this.abs() > other.abs()) {
-            bigger = this.copy()
-            lesser = other.copy()
-        } else {
-            bigger = other.copy()
-            lesser = this.copy()
+        for (i in thisOneLined.size-1 downTo 0) {
+
+            var addition = 0
+            val nextLine: ArrayList<Int> = arrayListOf()
+            nextLine.addAll(extraZeros)
+
+            for (j in otherOneLined.size - 1 downTo 0) {
+                nextLine.add((otherOneLined.getOrElse(j) { 0 } * thisOneLined.getOrElse(i) { 0 } + addition) % 10)
+                addition = (otherOneLined.getOrElse(j) { 0 } * thisOneLined.getOrElse(i) { 0 } + addition) / 10
+            }
+
+            if(addition > 0)
+                nextLine.add(addition)
+
+            extraZeros.add(0)
+
+            provAns.add(nextLine)
         }
 
+        val ansLined: ArrayList<Int> = arrayListOf()
+        ansLined.addAll(provAns[0])
 
-    }*/
+        for (i in 1 until provAns.size) {
+
+            var addition = 0
+
+            for (j in 0 until provAns[i].size){
+                val nextVal = (ansLined.getOrElse(j) { 0 } + provAns[i].getOrElse(j) { 0 } + addition) % 10
+                addition = (ansLined.getOrElse(j) { 0 } + provAns[i].getOrElse(j) { 0 } + addition) / 10
+                if(j < ansLined.size)
+                    ansLined[j] = nextVal
+                else
+                    ansLined.add(nextVal)
+            }
+
+            if (addition > 0)
+                ansLined.add(addition)
+        }
+
+        var ansR: ArrayList<Int> = arrayListOf()
+        var ansI: ArrayList<Int> = arrayListOf()
+
+        if (digitsAfterDot < ansLined.size) {
+            for (i in 0 until digitsAfterDot)
+                ansR.add(ansLined[i])
+            for (i in digitsAfterDot until ansLined.size)
+                ansI.add(ansLined[i])
+        } else {
+            ansR.addAll(ansLined)
+            for (i in ansLined.size..digitsAfterDot)
+                ansR.add(0)
+            ansI.add(0)
+        }
+
+        ansI = ArrayList(ansI.reversed())
+        ansR = ArrayList(ansR.reversed())
+
+        return DecimalFraction(ansI, ansR, (this.isNegative xor other.isNegative))
+    }
 }
