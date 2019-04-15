@@ -1,8 +1,19 @@
 package NoGroupId
 
+import java.lang.StringBuilder
 import kotlin.math.*
+import java.math.BigInteger
+import java.math.BigDecimal
+
+
 
 fun main(args: Array<String>) {
+    var a = BigDecimal(Math.random() * Math.pow(10.0, 32.0))
+    println(a)
+    a += BigDecimal(Math.random() * Math.pow(10.0, 16.0))
+    println(a)
+    a += BigDecimal(Math.random())
+    println(a)
     //val a = DecimalFraction.from(-3.67)
     /*println(DecimalFraction.from(20 + PI).integral.toString())
     println(DecimalFraction.from(20 + PI).fraction.toString())
@@ -15,26 +26,33 @@ fun main(args: Array<String>) {
     println(a.round(1).toString())
     println(a.round(2).toString())*/
     //println((-a).toString())
-    println()
+    //println()
 }
 
-data class DecimalFraction(private var integral: ArrayList<Int>,
-                      private var fraction: ArrayList<Int>,
-                      private var isNegative: Boolean) {
+data class DecimalFraction internal constructor(private var integral: ArrayList<Int>,
+                                                private var fraction: ArrayList<Int>,
+                                                private var isNegative: Boolean) {
 
-    private var intNumbs: Int = 100500
-    private var intFract: Int = 100500
+    private var intNumbs: Int = 3
+    private var intFract: Int = 3
 
     init {
-        truncList()
+        intNumbs = max(intNumbs, integral.size)
+        intFract = max(intFract, fraction.size)
+        //truncList()
+        delZeros()
         if((this.integral.size == 1) && (this.integral[0] == 0) && (this.fraction.size == 0))
             this.isNegative = false
     }
 
     private fun truncList() {
 
-        integral = ArrayList(integral.filterIndexed { index, _ ->  index > (integral.size - intNumbs - 1)  })
-        fraction = ArrayList(fraction.filterIndexed { index, _ ->  index < intFract})
+        integral = ArrayList(integral.filterIndexed { index, _ -> index > (integral.size - intNumbs - 1) })
+        fraction = ArrayList(fraction.filterIndexed { index, _ -> index < intFract })
+
+    }
+
+    private fun delZeros() {
 
         if (fraction.all { it == 0 })
             fraction.clear()
@@ -71,6 +89,11 @@ data class DecimalFraction(private var integral: ArrayList<Int>,
     }
 
     companion object {
+
+        val doubleOverflowCheck = from(Double.MAX_VALUE)
+        val floatOverflowCheck = from(Float.MAX_VALUE)
+        val intOverflowCheck = from(Int.MAX_VALUE)
+        val longOverflowCheck = from(Long.MAX_VALUE)
 
         /*
         fun from(inp: Double): DecimalFraction {
@@ -157,14 +180,12 @@ data class DecimalFraction(private var integral: ArrayList<Int>,
                     }
                 }
 
-                varInp = if ((isNeg) && (absR.isEmpty())){
-                    "-$absI"
-                } else if ((isNeg) && (absR.isNotEmpty())){
-                    "-$absI.$absR"
-                } else if ((!isNeg) && (absR.isNotEmpty())) {
-                    "$absI.$absR"
-                } else
-                    absI
+                varInp = when {
+                    (isNeg) && (absR.isEmpty()) -> "-$absI"
+                    (isNeg) && (absR.isNotEmpty()) -> "-$absI.$absR"
+                    (!isNeg) && (absR.isNotEmpty()) -> "$absI.$absR"
+                    else -> absI
+                }
 
                 //println(varInp)
 
@@ -183,7 +204,7 @@ data class DecimalFraction(private var integral: ArrayList<Int>,
 
                 while (curPos != varInp.length) {
                     if (varInp[curPos] != '.') {
-                        ansI.add(varInp[curPos].toString().toInt())
+                        ansI.add(Character.getNumericValue(varInp[curPos]))
                         curPos++
                     } else
                         break
@@ -207,12 +228,12 @@ data class DecimalFraction(private var integral: ArrayList<Int>,
 
     }
 
-
     fun setDigitsIntegral(inp: Int): DecimalFraction {
         if (inp < 1)
             throw IllegalArgumentException("Incorrect amount of digits given")
         intNumbs = inp
         truncList()
+        delZeros()
         return this.copy()
     }
 
@@ -221,22 +242,23 @@ data class DecimalFraction(private var integral: ArrayList<Int>,
             throw IllegalArgumentException("Incorrect amount of digits given")
         intFract = inp
         truncList()
+        delZeros()
         return this.copy()
     }
 
     override fun toString(): String {
-        var ans = if(isNegative)
-            "-" else
-            ""
+        val ans = StringBuilder()
+        if(isNegative)
+            ans.append("-")
         for(i in integral)
-            ans += i
+            ans.append(i)
         if(fraction.isNotEmpty()) {
-            ans += "."
+            ans.append(".")
             for(i in fraction)
-                ans += i
+                ans.append(i)
         }
 
-        return ans
+        return ans.toString()
     }
 
     /*fun toDouble(): Double {
@@ -254,32 +276,28 @@ data class DecimalFraction(private var integral: ArrayList<Int>,
 
     fun toDouble(): Double {
         //val mVal = from("17976931348623157" + "0".repeat(292))
-        val mVal = from(Double.MAX_VALUE)
-        if(this.abs() > mVal)
+        if(this.abs() > doubleOverflowCheck)
             throw IllegalArgumentException("Double Overflow")
         else
             return this.toString().toDouble()
     }
 
     fun toFloat(): Float {
-        val mVal = from(Float.MAX_VALUE)
-        if(this.abs() > mVal)
+        if(this.abs() > floatOverflowCheck)
             throw IllegalArgumentException("Float Overflow")
         else
             return this.toString().toFloat()
     }
 
     fun toLong(): Long {
-        val mVal = from(Long.MAX_VALUE)
-        if(this.abs() > mVal)
+        if(this.abs() > longOverflowCheck)
             throw IllegalArgumentException("Long Overflow")
         else
             return this.toString().toLong()
     }
 
     fun toInt(): Int {
-        val mVal = from(Int.MAX_VALUE)
-        if(this.abs() > mVal)
+        if(this.abs() > intOverflowCheck)
             throw IllegalArgumentException("Int Overflow")
         else
             return this.toString().toInt()
@@ -436,13 +454,8 @@ data class DecimalFraction(private var integral: ArrayList<Int>,
 
             for (i in 0..endPos) {
 
-                //println(bigger.integral.getOrElse(bigger.integral.size - i - 1) { 0 })
-                //println(lesser.integral.getOrElse(lesser.integral.size - i - 1) { 0 })
-                //println()
-
-                var numToAdd = bigger.integral
-                    .getOrElse(bigger.integral.size - i - 1) { 0 } - lesser.integral
-                    .getOrElse(lesser.integral.size - i - 1) { 0 }
+                var numToAdd = bigger.integral.getOrElse(bigger.integral.size - i - 1) { 0 } -
+                        lesser.integral.getOrElse(lesser.integral.size - i - 1) { 0 }
 
                 if (borrowed){
                     numToAdd--
